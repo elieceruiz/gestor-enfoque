@@ -54,6 +54,14 @@ with tab1:
         st.success("¡Tiempo de enfoque finalizado!")
         st.balloons()
 
+        # Sonido de "magical chime"
+        st.components.v1.html("""
+        <script>
+        const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/magical_chime.ogg");
+        audio.play();
+        </script>
+        """, height=0)
+
         nuevo_enfoque = {
             "Actividad": actividad,
             "Inicio": inicio.strftime("%Y-%m-%d %H:%M:%S"),
@@ -74,6 +82,14 @@ with tab1:
             fin_pausa = datetime.now(tz)
             duracion_pausa = str(fin_pausa - inicio_pausa).split(".")[0]
             st.success("¡Fin de la pausa activa!")
+
+            # Sonido de "spaceship alarm"
+            st.components.v1.html("""
+            <script>
+            const audio = new Audio("https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg");
+            audio.play();
+            </script>
+            """, height=0)
 
             nueva_pausa = {
                 "Actividad": actividad,
@@ -113,11 +129,5 @@ with tab2:
                     else:
                         break
                 st.info(f"Racha actual: {racha} día(s) consecutivo(s) con sesiones de enfoque.")
-                fig = px.bar(resumen, x="Fecha", y="Duración (min)", title="Tiempo de enfoque por día")
-                st.plotly_chart(fig)
-            else:
-                st.info("No hay fechas válidas para mostrar el resumen.")
-        else:
-            st.info("Aún no hay sesiones de enfoque registradas.")
-    else:
-        st.info("Aún no hay sesiones registradas.")
+                fig = px.line(resumen, x="Fecha", y="Duración (min)", title="Progreso diario de enfoque")
+                st.plotly_chart(fig, use_container_width=True)
