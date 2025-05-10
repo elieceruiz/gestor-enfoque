@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
-import plotly.express as px
 from pymongo import MongoClient
+import plotly.express as px  # Agregado para las gráficas de Plotly
 
 # Configuración
 tz = pytz.timezone("America/Bogota")
@@ -53,7 +53,10 @@ with tab1:
         duracion = str(fin - inicio).split(".")[0]
         st.success("¡Tiempo de enfoque finalizado!")
         st.balloons()
-        st.audio("https://actions.google.com/sounds/v1/cartoon/magical_chime.ogg", autoplay=True)
+        st.markdown(
+            '<audio autoplay><source src="https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg" type="audio/ogg"></audio>',
+            unsafe_allow_html=True,
+        )
 
         nuevo_enfoque = {
             "Actividad": actividad,
@@ -68,14 +71,19 @@ with tab1:
             barra_pausa = st.progress(0)
             mensaje_pausa = st.empty()
             inicio_pausa = datetime.now(tz)
+
             for i in range(tiempo_pausa * factor):
                 barra_pausa.progress((i + 1) / (tiempo_pausa * factor))
                 mensaje_pausa.markdown(f"Pausa: **{i+1}/{tiempo_pausa * factor}** segundos")
                 time.sleep(1)
+
             fin_pausa = datetime.now(tz)
             duracion_pausa = str(fin_pausa - inicio_pausa).split(".")[0]
             st.success("¡Fin de la pausa activa!")
-            st.audio("https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg", autoplay=True)
+            st.markdown(
+                '<audio autoplay><source src="https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg" type="audio/ogg"></audio>',
+                unsafe_allow_html=True,
+            )
 
             nueva_pausa = {
                 "Actividad": actividad,
@@ -93,27 +101,9 @@ with tab2:
     st.subheader("Historial de sesiones")
     df_hist = cargar_datos()
     if not df_hist.empty:
-        df_hist["Inicio"] = pd.to_datetime(df_hist["Inicio"], errors='coerce')
-        df_hist["Fecha"] = df_hist["Inicio"].dt.date
-        filtro = st.selectbox("Filtrar por actividad", ["Todas"] + sorted(df_hist["Actividad"].dropna().unique()))
-        if filtro != "Todas":
-            df_hist = df_hist[df_hist["Actividad"] == filtro]
-
-        st.dataframe(df_hist)
-
-        enfoque = df_hist[df_hist["Estado"] == "Enfoque"]
-        if not enfoque.empty:
-            enfoque["Duración (min)"] = pd.to_timedelta(enfoque["Duración"]).dt.total_seconds() / 60
-            if "Fecha" in enfoque.columns and not enfoque["Fecha"].isnull().all():
-                resumen = enfoque.groupby("Fecha")["Duración (min)"].sum().reset_index()
-                racha = 0
-                hoy = datetime.now(tz).date()
-                fechas = sorted(enfoque["Fecha"].dropna().unique(), reverse=True)
-                for i, f in enumerate(fechas):
-                    if f == hoy - timedelta(days=i):
-                        racha += 1
-                    else:
-                        break
-                st.info(f"Racha actual: {racha} día(s) consecutivo(s) con sesiones de enfoque.")
-                fig = px.bar(resumen, x="Fecha", y="Duración (min)", title="Progreso Diario de Enfoque")
-                st.plotly_chart(fig, use_container_width=True)
+        df_hist["Inicio"] = pd.to_datetime(df_hist["Inicio"])
+        fig = px.bar(df_hist, x="Actividad", y="Duración", color="Estado", title="Duración de Enfoques y Pausas")
+        st.plotly_chart(fig, use_container_width=True)
+        st.dataframe(df_hist.sort_values(by="Inicio", ascending=False))
+    else:
+        st.info("Aún no hay sesiones registradas.")
