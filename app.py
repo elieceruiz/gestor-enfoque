@@ -54,7 +54,7 @@ with tab1:
         st.success("¡Tiempo de enfoque finalizado!")
         st.balloons()
         st.markdown(
-            '<audio autoplay><source src="https://actions.google.com/sounds/v1/alarms/magical_chime.ogg" type="audio/ogg"></audio>',
+            '<audio autoplay><source src="https://actions.google.com/sounds/v1/cartoon/magical_chime.ogg" type="audio/ogg"></audio>',
             unsafe_allow_html=True,
         )
 
