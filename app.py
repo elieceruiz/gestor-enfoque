@@ -101,9 +101,33 @@ with tab2:
     st.subheader("Historial de sesiones")
     df_hist = cargar_datos()
     if not df_hist.empty:
-        df_hist["Inicio"] = pd.to_datetime(df_hist["Inicio"])
-        fig = px.bar(df_hist, x="Actividad", y="Duración", color="Estado", title="Duración de Enfoques y Pausas")
-        st.plotly_chart(fig, use_container_width=True)
-        st.dataframe(df_hist.sort_values(by="Inicio", ascending=False))
+        df_hist["Inicio"] = pd.to_datetime(df_hist["Inicio"], errors='coerce')
+        df_hist["Fecha"] = df_hist["Inicio"].dt.date
+        filtro = st.selectbox("Filtrar por actividad", ["Todas"] + sorted(df_hist["Actividad"].dropna().unique()))
+        if filtro != "Todas":
+            df_hist = df_hist[df_hist["Actividad"] == filtro]
+
+        st.dataframe(df_hist)
+
+        enfoque = df_hist[df_hist["Estado"] == "Enfoque"]
+        if not enfoque.empty:
+            enfoque["Duración (min)"] = pd.to_timedelta(enfoque["Duración"]).dt.total_seconds() / 60
+            if "Fecha" in enfoque.columns and not enfoque["Fecha"].isnull().all():
+                resumen = enfoque.groupby("Fecha")["Duración (min)"].sum().reset_index()
+                racha = 0
+                hoy = datetime.now(tz).date()
+                fechas = sorted(enfoque["Fecha"].dropna().unique(), reverse=True)
+                for i, f in enumerate(fechas):
+                    if f == hoy - timedelta(days=i):
+                        racha += 1
+                    else:
+                        break
+                st.info(f"Racha actual: {racha} día(s) consecutivo(s) con sesiones de enfoque.")
+                fig = px.bar(resumen, x="Fecha", y="Duración (min)", title="Tiempo de enfoque por día")
+                st.plotly_chart(fig)
+            else:
+                st.info("No hay fechas válidas para mostrar el resumen.")
+        else:
+            st.info("Aún no hay sesiones de enfoque registradas.")
     else:
         st.info("Aún no hay sesiones registradas.")
