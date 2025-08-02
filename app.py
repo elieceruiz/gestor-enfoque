@@ -8,7 +8,7 @@ import plotly.express as px  # Agregado para las gráficas de Plotly
 
 # Configuración
 tz = pytz.timezone("America/Bogota")
-mongo_uri = "mongodb+srv://elieceruiz_admin:fPydI3B73ijAukEz@cluster0.rqzim65.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
 client = MongoClient(mongo_uri)
 db = client["registro_enfoque"]
 coleccion = db["historial"]
